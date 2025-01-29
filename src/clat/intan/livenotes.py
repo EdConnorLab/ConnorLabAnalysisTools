@@ -41,7 +41,7 @@ def map_task_id_to_epochs_with_livenotes(livenotes_data: str,
             # Only proceed if the following event is 'Trial Complete'
             if following_event == 'Trial Complete':
                 for epoch_start, epoch_end in marker_channel_time_indices:
-                    if is_epoch_closer(closest_start, epoch_start, tstamp) or closest_start is None:
+                    if closest_start is None or is_epoch_closer(closest_start, epoch_start, tstamp):
                         closest_start = epoch_start
                         closest_end = epoch_end
 
@@ -49,7 +49,7 @@ def map_task_id_to_epochs_with_livenotes(livenotes_data: str,
                     result[task_id] = (closest_start, closest_end)
         else:
             for epoch_start, epoch_end in marker_channel_time_indices:
-                if is_epoch_closer(closest_start, epoch_start, tstamp) or closest_start is None:
+                if closest_start is None or is_epoch_closer(closest_start, epoch_start, tstamp):
                     closest_start = epoch_start
                     closest_end = epoch_end
 
