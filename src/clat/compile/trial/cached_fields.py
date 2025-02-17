@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 from collections import OrderedDict
+from typing import Type
 
 import pandas as pd
 
@@ -26,7 +27,7 @@ class CachedDatabaseField(DatabaseField):
         self.conn = conn
         super().__init__(conn, self.get_name())
 
-    def get_cached_super(self, when: When, super_type: CachedDatabaseField, *args, **kwargs):
+    def get_cached_super(self, when: When, super_type: type[CachedDatabaseField], *args, **kwargs):
         # Dynamically get the superclass instance based on super_type
         # Dynamically create an instance of the specified superclass
         super_field = super_type(self.conn, *args, **kwargs)
