@@ -17,6 +17,9 @@ class CachedDatabaseField(DatabaseField):
     serialized intermediate format.
 
     Override get_cached_value and cache_value to change the caching logic.
+
+    A subclass of a subclass of this class will still need to use super().get rather than
+    super().get_and_cache() because the subclass will not have proper self.name (it is overriden).
     """
 
     def __init__(self, conn: Connection,
@@ -25,13 +28,6 @@ class CachedDatabaseField(DatabaseField):
         super().__init__(conn, self.get_name())
 
     def get_cached_super(self, when: When, super_type: type[CachedDatabaseField], *args, **kwargs):
-        """
-        Get the value of the superclass instance of the specified type, caching it if necessary.
-        If the field is not a superclass of this, it may fail if the superclass does not have compatible
-        constructor parameters.
-
-        for *args and **kwargs, pass the same arguments as the superclass constructor
-        """
         # Dynamically get the superclass instance based on super_type
         # Dynamically create an instance of the specified superclass
         super_field = super_type(self.conn, *args, **kwargs)
