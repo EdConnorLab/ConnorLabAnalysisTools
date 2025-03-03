@@ -22,6 +22,7 @@ class CachedDatabaseField(DatabaseField):
     def __init__(self, conn: Connection,
                  ):
         self.conn = conn
+        self.name = self.get_name()
         super().__init__(conn, self.get_name())
 
     def get_cached_super(self, when: When, super_type: type[CachedDatabaseField], *args, **kwargs):
@@ -85,7 +86,7 @@ class CachedDatabaseField(DatabaseField):
         """
         self.conn.execute(query, params=(name, int(when.start), int(when.stop), value, value))
 
-    def get_name(self):
+    def get_name(self) -> str:
         raise NotImplementedError("Subclasses must implement get_name")
 
 class CachedFieldList(list[CachedDatabaseField]):
