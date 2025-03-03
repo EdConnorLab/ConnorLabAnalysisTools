@@ -31,7 +31,7 @@ class CachedDatabaseField(DatabaseField):
         If the field is not a superclass of this, it may fail if the superclass does not have compatible
         constructor parameters.
 
-        for *args and **kwargs, pass the same arguments as the superclass constructor
+        for *args and **kwargs, pass the same arguments as the superclass constructor (excluding conn)
         """
         # Dynamically get the superclass instance based on super_type
         # Dynamically create an instance of the specified superclass
