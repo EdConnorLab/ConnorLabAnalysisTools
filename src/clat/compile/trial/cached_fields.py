@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import ast
 from collections import OrderedDict
-from typing import Type
 
+import ast
 import pandas as pd
 
-from clat.compile.trial.trial_field import DatabaseField, FieldList
+from clat.compile.trial.trial_field import DatabaseField
 from clat.util.connection import Connection
 from clat.util.time_util import When
 
