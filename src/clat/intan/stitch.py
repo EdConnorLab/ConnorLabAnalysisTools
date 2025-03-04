@@ -62,6 +62,82 @@ class IntanFileStitcher:
                 folder_name = os.path.basename(folder)
                 f.write(f"{folder_name}\n")
 
+    def stitch_spike_dat(self, output_folder):
+        """
+        Stitch multiple spike.dat files together, updating timestamps correctly.
+        This handles the special binary format of spike.dat files.
+        """
+        # Initialize structures to store data from all folders
+        all_spikes = {}
+        last_sample_rate = None
+
+        # First read all spike data from all folders
+        file_offsets = {}  # To track time offsets for each file
+        max_timestamp = 0
+
+        print("Processing spike.dat files...")
+
+        # First pass: read all files and determine timestamp offsets
+        for i, folder in enumerate(self.folder_paths):
+            input_file_path = os.path.join(folder, 'spike.dat')
+            if not os.path.exists(input_file_path):
+                print(f"Warning: spike.dat not found in {folder}")
+                continue
+
+            if i == 0:
+                file_offsets[folder] = 0  # First file has no offset
+            else:
+                file_offsets[folder] = max_timestamp  # Offset for subsequent files
+
+            # Read the spike file and extract data
+            spikes, sample_rate = self.read_intan_spike_file(input_file_path, no_artifacts=False)
+
+            if last_sample_rate is not None and sample_rate != last_sample_rate:
+                print(f"Warning: Sample rate mismatch between folders: {last_sample_rate} vs {sample_rate}")
+
+            last_sample_rate = sample_rate
+
+            # Process each channel in the spike data
+            for channel_data in spikes:
+                channel_name = channel_data[0]  # Native channel name
+                custom_name = channel_data[1]  # Custom channel name
+                timestamps = channel_data[2]  # Timestamps
+                spike_ids = channel_data[3]  # Spike IDs
+
+                # Get snapshots if they exist
+                snapshots = channel_data[4] if len(channel_data) > 4 else None
+
+                # Update timestamps based on file offset
+                adjusted_timestamps = [t + file_offsets[folder] / sample_rate for t in timestamps]
+
+                # Find the maximum timestamp for the next offset calculation
+                if adjusted_timestamps:
+                    current_max = max(adjusted_timestamps)
+                    max_timestamp = max(max_timestamp, current_max * sample_rate)
+
+                # Initialize channel in all_spikes if not already present
+                if channel_name not in all_spikes:
+                    all_spikes[channel_name] = {
+                        'custom_name': custom_name,
+                        'timestamps': [],
+                        'spike_ids': [],
+                        'snapshots': [] if snapshots else None
+                    }
+
+                # Append data for this channel
+                all_spikes[channel_name]['timestamps'].extend(adjusted_timestamps)
+                all_spikes[channel_name]['spike_ids'].extend(spike_ids)
+                if snapshots:
+                    all_spikes[channel_name]['snapshots'].extend(snapshots)
+
+        # Now write the combined data to a new spike.dat file
+        output_file_path = os.path.join(output_folder, 'spike.dat')
+
+        if all_spikes and last_sample_rate:
+            self.write_intan_spike_file(output_file_path, all_spikes, last_sample_rate)
+            print(f"Created stitched spike.dat file at {output_file_path}")
+        else:
+            print("No spike data found to stitch.")
 def open_gui():
     root = tk.Tk()
     root.withdraw()  # Hide the main window
