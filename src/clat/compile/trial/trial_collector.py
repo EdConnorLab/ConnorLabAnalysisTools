@@ -10,7 +10,7 @@ class TrialCollector:
     """Class for collecting trials from the database based on trialStart and trialStop tstamps in BehMsg,
        and filtering types of trials (i.e. from different kinds of experiments)
        based on the msgs between trialStart and trialStop in BehMsg"""
-    def __init__(self, conn: Connection, when: When = time_util.today()):
+    def __init__(self, conn: Connection, when: When = time_util.all()):
         self.conn = conn
         self.when = when
         # self.beh_msg = conn.get_beh_msg(when)
