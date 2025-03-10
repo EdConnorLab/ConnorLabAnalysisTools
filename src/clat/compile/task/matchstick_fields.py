@@ -1,6 +1,6 @@
 import xmltodict
 
-from clat.compile.task.base_database_fields import StimSpecDataField
+from clat.compile.task.classic_database_task_fields import StimSpecDataField
 from clat.util.connection import Connection
 
 
