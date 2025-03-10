@@ -1,38 +1,37 @@
 import xmltodict
 
 from clat.compile.task.cached_task_fields import CachedTaskField
-from clat.compile.trial.cached_fields import CachedDatabaseField
-from clat.compile.trial.trial_field import DatabaseField
+from clat.compile.tstamp.cached_tstamp_fields import CachedDatabaseField
+from clat.compile.tstamp.tstamp_field import DatabaseField
 from clat.util.connection import Connection
 from clat.util.time_util import When
 
 
-def get_stim_spec_id(conn: Connection, when: When) -> int:
-    try:
-        conn.execute(
-            "SELECT msg from BehMsg WHERE "
-            "type = 'SlideOn' AND "
-            "tstamp >= %s AND tstamp <= %s",
-            params=(int(when.start), int(when.stop)))
-        trial_msg_xml = conn.fetch_one()
-        trial_msg_dict = xmltodict.parse(trial_msg_xml)
-        taskId = int(trial_msg_dict['SlideEvent']['taskId'])
-
-        conn.execute("SELECT stim_id from TaskToDo WHERE "
-                     "task_id = %s",
-                     params=(taskId,))
-        stim_spec_id = conn.fetch_one()
-    except:
-        return "None"
-    return stim_spec_id
-
-
 class StimSpecIdField(CachedDatabaseField):
     def get(self, when: When) -> int:
-        return get_stim_spec_id(self.conn, when)
+        return self.get_stim_spec_id(self.conn, when)
 
     def get_name(self):
         return "Id"
+
+    def get_stim_spec_id(self, when: When) -> int:
+        try:
+            self.conn.execute(
+                "SELECT msg from BehMsg WHERE "
+                "type = 'SlideOn' AND "
+                "tstamp >= %s AND tstamp <= %s",
+                params=(int(when.start), int(when.stop)))
+            trial_msg_xml = self.conn.fetch_one()
+            trial_msg_dict = xmltodict.parse(trial_msg_xml)
+            taskId = int(trial_msg_dict['SlideEvent']['taskId'])
+
+            self.conn.execute("SELECT stim_id from TaskToDo WHERE "
+                              "task_id = %s",
+                              params=(taskId,))
+            stim_spec_id = self.conn.fetch_one()
+        except:
+            return "None"
+        return stim_spec_id
 
 
 class StimSpecDataField(StimSpecIdField):
@@ -52,12 +51,6 @@ def get_stim_spec_data(conn: Connection, when: When, stim_spec_id) -> dict:
     stim_spec_data_xml = conn.fetch_one()
     stim_spec_data_dict = xmltodict.parse(stim_spec_data_xml)
     return stim_spec_data_dict
-
-
-class StimSpecField(StimSpecIdField):
-    def get(self, when: When) -> dict:
-        stim_spec_id = super().get(when)
-        return get_stim_spec(self.conn, when, stim_spec_id)
 
 
 def get_stim_spec(conn: Connection, when: When, stim_spec_id: int) -> dict:
@@ -157,3 +150,54 @@ def get_ga_type_from_ga_name(conn, ga_name: str):
 def get_ga_lineage_from_ga_name(conn, ga_name: str):
     ga_lineage = ga_name.split("-")[1]
     return ga_lineage
+
+
+class TaskIdField(CachedDatabaseField):
+    def get(self, when: When) -> int:
+        try:
+            self.conn.execute(
+                "SELECT msg from BehMsg WHERE "
+                "type = 'SlideOn' AND "
+                "tstamp >= %s AND tstamp <= %s",
+                params=(int(when.start), int(when.stop)))
+            trial_msg_xml = self.conn.fetch_one()
+            trial_msg_dict = xmltodict.parse(trial_msg_xml)
+            taskId = int(trial_msg_dict['SlideEvent']['taskId'])
+
+            return taskId
+        except:
+            return "None"
+
+    def get_name(self):
+        return "TaskId"
+
+
+class StimIdField(TaskIdField):
+    def get(self, when: When) -> int:
+        task_id = self.get_cached_super(when, TaskIdField)
+        self.conn.execute("SELECT stim_id from TaskToDo WHERE "
+                          "task_id = %s",
+                          params=(task_id,))
+        stim_spec_id = self.conn.fetch_one()
+        return stim_spec_id
+
+    def get_name(self):
+        return "StimId"
+
+
+class StimSpecField(StimIdField):
+    def __init__(self, conn: Connection):
+        super().__init__(conn)
+
+    def get(self, when: When) -> str:
+        # Execute the query to get the StimSpec based on task_id
+        # Note: Replace the query with the appropriate one for your schema
+        stim_id = self.get_cached_super(when, StimIdField)
+        query = "SELECT spec FROM StimSpec WHERE id = %s"
+        params = (stim_id,)
+        self.conn.execute(query, params)
+        stim_spec = self.conn.fetch_one()
+        return stim_spec
+
+    def get_name(self):
+        return "StimSpec"

@@ -7,12 +7,12 @@ import tkinter as tk
 import numpy as np
 import xmltodict
 
-from clat.compile.trial.cached_fields import CachedDatabaseField, CachedFieldList
+from clat.compile.tstamp.cached_tstamp_fields import CachedDatabaseField, CachedFieldList
 from clat.eyecal.params import EyeCalibrationParameters
 from clat.util import time_util
 
-from clat.compile.trial.trial_collector import TrialCollector
-from clat.compile.trial.trial_field import DatabaseField, FieldList, get_data_from_trials
+from clat.compile.tstamp.trial_tstamp_collector import TrialCollector
+from clat.compile.tstamp.tstamp_field import DatabaseField, FieldList, get_data_from_trials
 from clat.util.connection import Connection
 from clat.util.time_util import When
 from typing import Optional, Tuple, Any, List

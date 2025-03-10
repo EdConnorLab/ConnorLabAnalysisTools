@@ -5,7 +5,7 @@ from collections import OrderedDict
 import ast
 import pandas as pd
 
-from clat.compile.trial.trial_field import DatabaseField
+from clat.compile.tstamp.tstamp_field import DatabaseField
 from clat.util.connection import Connection
 from clat.util.time_util import When
 
@@ -23,6 +23,7 @@ class CachedDatabaseField(DatabaseField):
         self.conn = conn
         self.name = self.get_name()
         super().__init__(conn, self.get_name())
+        self._ensure_cache_table_exists()
 
     def get_cached_super(self, when: When, super_type: type[CachedDatabaseField], *args, **kwargs):
         """
@@ -84,6 +85,31 @@ class CachedDatabaseField(DatabaseField):
         ON DUPLICATE KEY UPDATE value = %s;
         """
         self.conn.execute(query, params=(name, int(when.start), int(when.stop), value, value))
+
+    def _ensure_cache_table_exists(self):
+        """Ensures that the TrialFieldCache table exists in the database."""
+        # Check if the table exists
+        check_table_query = """
+        SELECT COUNT(*)
+        FROM information_schema.tables
+        WHERE table_schema = DATABASE()
+        AND table_name = 'TrialFieldCache';
+        """
+        self.conn.execute(check_table_query)
+        result = self.conn.fetch_all()
+
+        # Create the table if it doesn't exist
+        if result[0][0] == 0:
+            create_table_query = """
+            CREATE TABLE `TrialFieldCache` (
+              `name` varchar(255) NOT NULL,
+              `start` bigint(20) NOT NULL,
+              `stop` bigint(20) NOT NULL,
+              `value` longtext,
+              PRIMARY KEY (`name`,`start`,`stop`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=latin1
+            """
+            self.conn.execute(create_table_query)
 
     def get_name(self) -> str:
         raise NotImplementedError("Subclasses must implement get_name")
