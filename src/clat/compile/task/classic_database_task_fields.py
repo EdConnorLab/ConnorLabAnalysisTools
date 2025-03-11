@@ -1,6 +1,6 @@
 from clat.compile.task.task_field import TaskField
 from clat.util.connection import Connection
-from cached_task_fields import CachedTaskDatabaseField
+from clat.compile.task.cached_task_fields import CachedTaskDatabaseField
 
 
 class TaskIdField(CachedTaskDatabaseField):
