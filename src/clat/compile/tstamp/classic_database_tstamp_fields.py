@@ -1,6 +1,5 @@
 import xmltodict
 
-from clat.compile.task.cached_task_fields import CachedTaskField
 from clat.compile.tstamp.cached_tstamp_fields import CachedDatabaseField
 from clat.compile.tstamp.tstamp_field import DatabaseField
 from clat.util.connection import Connection
