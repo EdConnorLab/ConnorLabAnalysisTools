@@ -2,7 +2,7 @@ from collections import OrderedDict
 from typing import List
 
 import pandas as pd
-
+import traceback
 """
 Handles compilation of data while using the taskId as the primary key for the data
 """
@@ -64,6 +64,8 @@ class Task:
                 field_value = field.get(self.task_id)
             except Exception as e:
                 error = f"Error getting {field.name} for task_id {self.task_id}: {e}"
+                # print full trace
+                traceback.format_exc()
                 print(error)
                 field_value = "None"
             field_values.append(field_value)

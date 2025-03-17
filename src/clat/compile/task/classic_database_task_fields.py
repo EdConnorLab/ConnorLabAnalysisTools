@@ -19,7 +19,7 @@ class StimSpecIdField(CachedTaskDatabaseField):
         super().__init__(conn)
 
     def get_name(self) -> str:
-        return "TaskId"
+        return "StimSpecId"
 
     def get(self, task_id: int) -> int:
         # Execute the query to get the StimSpecId based on task_id
@@ -27,7 +27,7 @@ class StimSpecIdField(CachedTaskDatabaseField):
         params = (task_id,)
         self.conn.execute(query, params)
         result = self.conn.fetch_one()
-        stim_spec_id = result[0] if result else None
+        stim_spec_id = result if result else None
         return int(stim_spec_id) if stim_spec_id is not None else None
 
 
@@ -36,7 +36,7 @@ class StimSpecField(StimSpecIdField):
         super().__init__(conn)
 
     def get_name(self) -> str:
-        return "StimSpecId"
+        return "StimSpec"
 
     def get(self, task_id: int) -> str:
         # Use get_cached_super to leverage the cached StimSpecId
@@ -48,8 +48,8 @@ class StimSpecField(StimSpecIdField):
         query = "SELECT spec FROM StimSpec WHERE id = %s"
         params = (stim_id,)
         self.conn.execute(query, params)
-        result = self.conn.fetch_one()
-        return result[0] if result else None
+        result = self.conn.fetch_all()
+        return result[0][0] if result else None
 
 
 class StimSpecDataField(StimSpecIdField):

@@ -23,7 +23,7 @@ class CachedTaskDatabaseField(DatabaseField):
         super().__init__(conn, self.get_name())
         self._ensure_cache_table_exists()
 
-    def get_cached_super(self, task_id: str, super_type: type[CachedTaskDatabaseField], *args, **kwargs):
+    def get_cached_super(self, task_id: int, super_type: type[CachedTaskDatabaseField], *args, **kwargs):
         """
         Get the value of the superclass instance of the specified type, caching it if necessary.
         If the field is not a superclass of this, it may fail if the superclass does not have compatible
