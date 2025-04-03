@@ -8,7 +8,7 @@ from clat.util.time_util import When
 
 class StimSpecIdField(CachedDatabaseField):
     def get(self, when: When) -> int:
-        return self.get_stim_spec_id(self.conn, when)
+        return self.get_stim_spec_id(when)
 
     def get_name(self):
         return "Id"
