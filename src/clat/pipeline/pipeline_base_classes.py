@@ -352,7 +352,7 @@ class PipelineBuilder:
         self.branch.then(module)
         return self
 
-    def branch(self, *branches: Branch) -> 'PipelineBuilder':
+    def make_branch(self, *branches: Branch) -> 'PipelineBuilder':
         """Create parallel branches in the pipeline."""
         self.branch.branch(*branches)
         return self
@@ -373,6 +373,8 @@ def create_pipeline() -> PipelineBuilder:
 def create_branch() -> Branch:
     """Factory function to create a new branch."""
     return Branch()
+
+
 
 
 #############################
