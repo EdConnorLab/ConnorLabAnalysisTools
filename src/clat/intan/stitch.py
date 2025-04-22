@@ -8,7 +8,7 @@ import tkfilebrowser
 
 class IntanFileStitcher:
     def __init__(self, folder_paths):
-        self.folder_paths = sorted(folder_paths)
+        self.folder_paths = folder_paths
 
     def read_append_write(self, filename, output_folder):
         with open(os.path.join(output_folder, filename), 'wb') as output_file:
@@ -50,9 +50,12 @@ class IntanFileStitcher:
 
         self.append_notes('notes.txt', output_folder)
 
-        auxiliary_files = ['info.rhd', 'settings.xml']
+        auxiliary_files = ['info.rhd', 'info.rhs', 'settings.xml']
         for filename in auxiliary_files:
-            self.copy_auxiliary_files(filename, output_folder)
+            try:
+                self.copy_auxiliary_files(filename, output_folder)
+            except FileNotFoundError:
+                print(f"Warning: {filename} not found in {self.folder_paths[0]}")
 
         self.create_merge_info(output_folder)
 
