@@ -5,7 +5,7 @@
 import math
 import numpy as np
 
-from src.clat.intan.rhs.intanutil.report import print_progress
+from clat.intan.rhs.intanutil.report import print_progress
 
 
 def apply_notch_filter(header, data):

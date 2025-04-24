@@ -6,7 +6,7 @@ the Python level with dictionaries.
 
 import struct
 
-from src.clat.intan.rhs.intanutil.report import read_qstring
+from clat.intan.rhs.intanutil.report import read_qstring
 
 
 def read_header(fid):

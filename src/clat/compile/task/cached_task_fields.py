@@ -34,18 +34,19 @@ class CachedTaskDatabaseField(DatabaseField):
         # Dynamically create an instance of the specified superclass
         super_field = super_type(self.conn, *args, **kwargs)
 
-        # Attempt to retrieve cached value
-        cached_value = self._get_cached_value(super_field.get_name(), task_id)
-        if cached_value is not None:
-            return self.convert_from_string(cached_value)
+        return super_field.get_and_cache(super_field.get_name(), task_id)
+        # # Attempt to retrieve cached value
+        # cached_value = self._get_cached_value(super_field.get_name(), task_id)
+        # if cached_value is not None:
+        #     return self.convert_from_string(cached_value)
+        #
+        # # Fetch data using the superclass's get method and cache it
+        # data = super_field.get(task_id)
+        # self._cache_value(super_field.get_name(), task_id, data)
+        # converted_value = self.convert_from_string(self._get_cached_value(super_field.get_name(), task_id))
+        # return converted_value
 
-        # Fetch data using the superclass's get method and cache it
-        data = super_field.get(task_id)
-        self._cache_value(super_field.get_name(), task_id, data)
-        converted_value = self.convert_from_string(self._get_cached_value(super_field.get_name(), task_id))
-        return converted_value
-
-    def get_and_cache(self, name: str, task_id: str):
+    def get_and_cache(self, name: str, task_id: int):
         cached_value = self._get_cached_value(name, task_id)
         if cached_value is not None:
             return self.convert_from_string(cached_value)
@@ -64,7 +65,7 @@ class CachedTaskDatabaseField(DatabaseField):
         except SyntaxError:
             return cached_value
 
-    def _get_cached_value(self, name: str, task_id: str):
+    def _get_cached_value(self, name: str, task_id: int):
         # Implement the logic to query the TaskFieldCache table
         # to retrieve the cached value, if it exists and is still valid.
         query = "SELECT value FROM TaskFieldCache WHERE name = %s AND task_id = %s;"
@@ -72,7 +73,7 @@ class CachedTaskDatabaseField(DatabaseField):
         result = self.conn.fetch_all()
         return result[0][0] if result else None
 
-    def _cache_value(self, name: str, task_id: str, value):
+    def _cache_value(self, name: str, task_id: int, value):
         value = str(value)
         # Implement the logic to insert or update the cached value
         # in the TaskFieldCache table.
@@ -110,7 +111,7 @@ class CachedTaskDatabaseField(DatabaseField):
     def get_name(self) -> str:
         raise NotImplementedError("Subclasses must implement get_name")
 
-    def get(self, task_id: str):
+    def get(self, task_id: int):
         """
         Subclasses should override this method to fetch the actual data.
         """

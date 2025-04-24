@@ -10,7 +10,7 @@ import struct
 
 import numpy as np
 
-from src.clat.intan.rhs.intanutil.report import print_record_time_summary, print_progress
+from clat.intan.rhs.intanutil.report import print_record_time_summary, print_progress
 
 
 def calculate_data_size(header, filename, fid):

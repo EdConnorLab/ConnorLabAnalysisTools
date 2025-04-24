@@ -11,14 +11,14 @@ import time
 
 import matplotlib.pyplot as plt
 
-from src.clat.intan.rhs.intanutil.header import (read_header,
+from clat.intan.rhs.intanutil.header import (read_header,
                               header_to_result)
-from src.clat.intan.rhs.intanutil.data import (calculate_data_size,
+from clat.intan.rhs.intanutil.data import (calculate_data_size,
                             read_all_data_blocks,
                             check_end_of_file,
                             parse_data,
                             data_to_result)
-from src.clat.intan.rhs.intanutil.filter import apply_notch_filter
+from clat.intan.rhs.intanutil.filter import apply_notch_filter
 
 
 def read_data(filename):
