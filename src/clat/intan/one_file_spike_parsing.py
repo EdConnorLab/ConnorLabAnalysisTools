@@ -12,6 +12,8 @@ class OneFileParser:
     import os
     import bisect
     sample_rate: int = None
+    seconds_before_epoch = 0.2
+    seconds_after_epoch = 0.2
 
     def parse(self, intan_file_path: str) -> tuple[
         dict[int, dict[int, list[float]]], dict[int, tuple[float, float]], int]:
@@ -45,9 +47,12 @@ class OneFileParser:
 
             for channel, tstamps in spike_tstamps_by_channel.items():
                 # Using binary search to find the range of timestamps within the current epoch
-                start_index = bisect.bisect_left(tstamps, epoch_indices[0] / self.sample_rate)
-                end_index = bisect.bisect_right(tstamps, epoch_indices[1] / self.sample_rate)
-                # Extract the timestamps that fall within the epoch
+                start_time = (epoch_indices[0] / self.sample_rate) - self.seconds_before_epoch
+                end_time = (epoch_indices[1] / self.sample_rate) + self.seconds_after_epoch
+                start_index = bisect.bisect_left(tstamps, start_time)
+                end_index = bisect.bisect_right(tstamps, end_time)
+
+                # Extract the timestamps that fall within the epoch plus and minus the specified buffer
                 passed_filter = tstamps[start_index:end_index]
                 filtered_spikes_for_channels[channel] = passed_filter
 
