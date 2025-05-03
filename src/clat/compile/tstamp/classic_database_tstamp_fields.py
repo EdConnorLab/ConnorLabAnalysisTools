@@ -99,7 +99,7 @@ class NewGaLineageField(StimSpecIdField):
 
 
 class RegimeScoreField(NewGaLineageField):
-    def get(self, when: When) -> str:
+    def get(self, when: When) -> float:
         lineage_id = self.get_cached_super(when, NewGaLineageField)
         return float(get_regime_score_from_lineage_id(self.conn, lineage_id))
 
@@ -108,12 +108,11 @@ class RegimeScoreField(NewGaLineageField):
 
 
 def get_regime_score_from_lineage_id(conn, lineage_id):
-    conn.execute("SELECT regime FROM LineageGaInfo WHERE lineage_id"
-                 " = %s",
+    conn.execute("SELECT regime FROM LineageGaInfo WHERE lineage_id = %s "
+                 "ORDER BY gen_id DESC LIMIT 1",
                  params=(lineage_id,))
     regime_score = conn.fetch_one()
     return regime_score
-
 
 def get_new_ga_lineage_from_stim_spec_id(conn, stim_spec_id):
     conn.execute("SELECT lineage_id FROM StimGaInfo WHERE"
