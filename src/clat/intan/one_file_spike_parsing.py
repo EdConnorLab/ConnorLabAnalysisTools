@@ -62,3 +62,17 @@ class OneFileParser:
             filtered_spikes_by_channel_by_task_id[task_id] = filtered_spikes_for_channels
 
         return filtered_spikes_by_channel_by_task_id, epoch_start_stop_times_by_task_id, self.sample_rate
+
+    def parse_epochs(self, intan_file_path: str, sample_rate):
+        digital_in_path = os.path.join(intan_file_path, "digitalin.dat")
+        notes_path = os.path.join(intan_file_path, "notes.txt")
+        stim_epochs_from_markers = epoch_using_marker_channels(digital_in_path, false_negative_correction_duration=2)
+        epoch_indices_for_task_ids = map_task_id_to_epochs_with_livenotes(notes_path, stim_epochs_from_markers,
+                                                                   require_trial_complete=False)
+        epoch_seconds_for_task_ids = {}
+        for task_id, epoch_indices in epoch_indices_for_task_ids.items():
+            epoch_start_seconds = epoch_indices[0] / sample_rate
+            epoch_end_seconds = epoch_indices[1] / sample_rate
+            epoch_seconds_for_task_ids[task_id] = (epoch_start_seconds, epoch_end_seconds)
+
+        return epoch_seconds_for_task_ids
