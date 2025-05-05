@@ -5,6 +5,8 @@ from tkinter import simpledialog
 
 import tkfilebrowser
 
+from clat.intan.marker_channels import read_number_of_samples
+
 
 class IntanFileStitcher:
     def __init__(self, folder_paths):
@@ -21,8 +23,10 @@ class IntanFileStitcher:
         cumulative_last_index = 0
         with open(os.path.join(output_folder, filename), 'w') as output_file:
             for folder in self.folder_paths:
+                digital_in_path = os.path.join(folder, 'digitalin.dat')
+                number_of_samples = read_number_of_samples(digital_in_path)
+
                 input_file_path = os.path.join(folder, filename)
-                local_last_index = 0  # Last index within the current file
                 with open(input_file_path, 'r') as input_file:
                     lines = input_file.readlines()
                     for line in lines:
@@ -32,9 +36,9 @@ class IntanFileStitcher:
                         index, timestamp, info = line.split(", ")
                         new_index = int(index) + cumulative_last_index
                         output_file.write(f"{new_index}, {timestamp}, {info}\n\n")  # Added two extra newlines
-                        local_last_index = new_index  # Update the last index for the current file
-                cumulative_last_index = local_last_index  # Update the cumulative last index for the next file
 
+                # After processing all notes from this folder, update the cumulative index
+                cumulative_last_index += number_of_samples
     def copy_auxiliary_files(self, filename, output_folder):
         source_path = os.path.join(self.folder_paths[0], filename)
         destination_path = os.path.join(output_folder, filename)
@@ -43,12 +47,12 @@ class IntanFileStitcher:
     def stitch_files(self, output_folder):
         if not os.path.exists(output_folder):
             os.makedirs(output_folder)
+        self.append_notes('notes.txt', output_folder)
 
         files_to_stitch = ['amplifier.dat', 'digitalin.dat']
         for filename in files_to_stitch:
             self.read_append_write(filename, output_folder)
 
-        self.append_notes('notes.txt', output_folder)
 
         auxiliary_files = ['info.rhd', 'info.rhs', 'settings.xml']
         for filename in auxiliary_files:
