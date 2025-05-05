@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import traceback
 from collections import OrderedDict
 
 import ast
@@ -139,6 +140,7 @@ class CachedTaskFieldList(list[CachedTaskDatabaseField]):
                     field_values.append(field.get_and_cache(field.name, task_id))
                 except Exception as e:
                     print(f"Error fetching {field.name} for task {task_id}: {e}")
+                    traceback.print_exc()
                     field_values.append(None)
             field_values.insert(0, task_id)
             names = self.get_names()

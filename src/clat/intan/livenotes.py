@@ -18,6 +18,9 @@ def map_task_id_to_epochs_with_livenotes(livenotes_data: str,
     has multiple instances in the livenotes, output_first_instance will determine whether the first
     instance or the last instance will be returned. If output_first_instance is True, the first instance
     will be returned, otherwise the last instance will be returned.
+
+    This function also ensures that each epoch is only assigned to one task_id with the smallest time difference.
+    For other task_ids that were assigned to the same epoch, their value is set to None.
     """
     data = read_livenotes(livenotes_data)
     events = parse_livenotes_to_events(data)
@@ -25,6 +28,12 @@ def map_task_id_to_epochs_with_livenotes(livenotes_data: str,
     task_ids.sort()
 
     result = {}
+    # Dictionary to track the time difference for each task_id
+    time_differences = {}
+    # Dictionary to track the timestamp for each task_id
+    tstamps_per_task_id = {}
+    # Dictionary to track which epoch is assigned to which task_ids
+    epoch_to_task_ids = {}
 
     # Loop through each task_id and find the closest marker channel to it
     for tstamp, task_id in task_ids:
@@ -36,7 +45,6 @@ def map_task_id_to_epochs_with_livenotes(livenotes_data: str,
         if idx < len(events) - 1:
             following_event = events[idx + 1][1]  # Get the following event
 
-
         if require_trial_complete:
             # Only proceed if the following event is 'Trial Complete'
             if following_event == 'Trial Complete':
@@ -47,6 +55,15 @@ def map_task_id_to_epochs_with_livenotes(livenotes_data: str,
 
                 if closest_start is not None and result.get(task_id) is None:
                     result[task_id] = (closest_start, closest_end)
+                    time_difference = abs(tstamp - closest_start) / 30000
+                    time_differences[task_id] = time_difference
+                    tstamps_per_task_id[task_id] = tstamp
+
+                    # Track which task_ids are assigned to this epoch
+                    epoch_key = (closest_start, closest_end)
+                    if epoch_key not in epoch_to_task_ids:
+                        epoch_to_task_ids[epoch_key] = []
+                    epoch_to_task_ids[epoch_key].append(task_id)
         else:
             for epoch_start, epoch_end in marker_channel_time_indices:
                 if closest_start is None or is_epoch_closer(closest_start, epoch_start, tstamp):
@@ -56,11 +73,65 @@ def map_task_id_to_epochs_with_livenotes(livenotes_data: str,
             if is_output_first_instance:
                 if closest_start is not None and result.get(task_id) is None:
                     result[task_id] = (closest_start, closest_end)
+                    time_difference = abs(tstamp - closest_start) / 30000
+                    time_differences[task_id] = time_difference
+                    tstamps_per_task_id[task_id] = tstamp
+
+                    # Track which task_ids are assigned to this epoch
+                    epoch_key = (closest_start, closest_end)
+                    if epoch_key not in epoch_to_task_ids:
+                        epoch_to_task_ids[epoch_key] = []
+                    epoch_to_task_ids[epoch_key].append(task_id)
             else:
                 if closest_start is not None:
                     # will override the previous instance of the task_id
                     # so that the last instance will be returned at the end
                     result[task_id] = (closest_start, closest_end)
+                    time_difference = abs(tstamp - closest_start) / 30000
+                    time_differences[task_id] = time_difference
+                    tstamps_per_task_id[task_id] = tstamp
+
+                    # Track which task_ids are assigned to this epoch
+                    epoch_key = (closest_start, closest_end)
+                    if epoch_key not in epoch_to_task_ids:
+                        epoch_to_task_ids[epoch_key] = []
+                    epoch_to_task_ids[epoch_key].append(task_id)
+
+    # Print time differences for debugging
+    for task_id, time_difference in time_differences.items():
+        if task_id in result and result[task_id] is not None:
+            epoch_start = result[task_id][0]
+            tstamp = tstamps_per_task_id[task_id]
+            print(
+                f"Task ID: {task_id}, Time difference: {time_difference}, at tstamp: {tstamp / 30000}, epoch start: {epoch_start / 30000}")
+
+    # Handle duplicate epoch assignments
+    # Instead of creating a new result dictionary, modify the existing one
+
+    # Process each epoch that has multiple task_ids assigned to it
+    for epoch, task_id_list in epoch_to_task_ids.items():
+        if len(task_id_list) > 1:
+            print(f"Epoch {epoch} is assigned to multiple task IDs: {task_id_list}")
+
+            # Find the task_id with the smallest time difference
+            best_task_id = None
+            smallest_difference = float('inf')
+
+            for task_id in task_id_list:
+                if task_id in time_differences and time_differences[task_id] < smallest_difference:
+                    smallest_difference = time_differences[task_id]
+                    best_task_id = task_id
+
+            # Set all other task_ids to None
+            if best_task_id is not None:
+                print(f"Keeping task ID {best_task_id} for epoch {epoch} with time difference {smallest_difference}")
+
+                # Set the other task_ids to None
+                for task_id in task_id_list:
+                    if task_id != best_task_id:
+                        print(
+                            f"Setting task ID {task_id} to None (was assigned to epoch {epoch} with time difference {time_differences.get(task_id, 'unknown')})")
+                        result[task_id] = None
 
     return result
 

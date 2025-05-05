@@ -124,3 +124,4 @@ def read_amplifier_data(file_path, amplifier_channels):
         channel_to_data[Channel(native_channel_name)] = v[i, :]
 
     return channel_to_data
+
