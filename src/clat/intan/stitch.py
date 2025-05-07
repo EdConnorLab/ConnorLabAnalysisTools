@@ -5,7 +5,6 @@ from tkinter import simpledialog
 
 import tkfilebrowser
 
-from clat.intan.marker_channels import read_number_of_samples
 
 
 class IntanFileStitcher:
@@ -24,7 +23,7 @@ class IntanFileStitcher:
         with open(os.path.join(output_folder, filename), 'w') as output_file:
             for folder in self.folder_paths:
                 digital_in_path = os.path.join(folder, 'digitalin.dat')
-                number_of_samples = read_number_of_samples(digital_in_path)
+                number_of_samples = read_number_of_samples_from_digital_in(digital_in_path)
 
                 input_file_path = os.path.join(folder, filename)
                 with open(input_file_path, 'r') as input_file:
@@ -171,6 +170,16 @@ def open_gui():
             # Run the stitcher
             stitcher = IntanFileStitcher(folder_paths)
             stitcher.stitch_files(final_output_folder_path)
+
+def read_number_of_samples_from_digital_in(full_file_name) -> int:
+    fid = open(full_file_name, 'rb')
+    filesize = os.path.getsize(full_file_name)
+
+    num_samples = filesize // 2  # uint16 = 2 bytes
+
+    fid.close()
+
+    return num_samples
 def main():
     open_gui()
 
