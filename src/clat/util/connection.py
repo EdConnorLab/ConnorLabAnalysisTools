@@ -11,7 +11,7 @@ from clat.util.time_util import When, to_unix
 
 class Connection:
 
-    def __init__(self, database, user="xper_rw", password="up2nite", host="172.30.6.80"):
+    def __init__(self, database, user="xper_rw", password="up2nite", host="172.30.6.61"):
         self.database = database
         self.user = user
         self.password = password
