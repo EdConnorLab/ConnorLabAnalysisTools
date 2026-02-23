@@ -165,7 +165,7 @@ class TaskIdField(CachedDatabaseField):
 
             return taskId
         except:
-            return "None"
+            return None
 
     def get_name(self):
         return "TaskId"
