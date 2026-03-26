@@ -1,3 +1,5 @@
+import glob
+
 import os
 from typing import Tuple, List, Dict
 
@@ -215,15 +217,29 @@ def parse_livenotes_to_events(data: str) -> List[Tuple[int, str]]:
         except IndexError:
             print(f"Error parsing line {line}")
             continue
+        except ValueError:
+            print(f"Error converting tstamp to int in line {line}")
+            continue
 
     return tstamp_and_events_from_livenotes
 
 
 def read_livenotes(livenotes_data: str) -> str:
-    # Check if the input is a file path
     if os.path.isfile(livenotes_data):
         with open(livenotes_data, 'r') as file:
-            data = file.read()
-    else:
-        data = livenotes_data
-    return data
+            return file.read()
+
+    # Fallback: search for a timestamped variant in the same directory
+    search_dir = os.path.dirname(livenotes_data) or '.'
+    matches = sorted(
+        glob.glob(os.path.join(search_dir, '*notes*.txt')),
+        key=os.path.getmtime,
+        reverse=True
+    )
+
+    if matches:
+        with open(matches[0], 'r') as file:
+            return file.read()
+
+    # Last resort: treat as raw string
+    return livenotes_data

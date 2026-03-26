@@ -72,7 +72,16 @@ class CachedTaskDatabaseField(DatabaseField):
         query = "SELECT value FROM TaskFieldCache WHERE name = %s AND task_id = %s;"
         self.conn.execute(query, params=(name, task_id))
         result = self.conn.fetch_all()
-        return result[0][0] if result else None
+        if not result:
+            return None
+        if not result[0]:
+            return None
+        if not result[0][0]:
+            return None
+        res = result[0][0]
+        if res == "None":
+            return None
+        return res if result else None
 
     def _cache_value(self, name: str, task_id: int, value):
         value = str(value)
