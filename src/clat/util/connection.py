@@ -1,4 +1,5 @@
 import datetime
+import numpy as np
 import threading
 from time import sleep
 
@@ -42,6 +43,10 @@ class Connection:
                 sleep(1)
                 self._connect()
                 self.my_cursor = self.mydb.cursor()
+            for i, param in enumerate(params):
+                # if np.float64, convert to float
+                if isinstance(param, np.float64):
+                    params[i] = float(param)
             self.my_cursor.execute(statement, params)
 
             has_results = self.my_cursor.description is not None
