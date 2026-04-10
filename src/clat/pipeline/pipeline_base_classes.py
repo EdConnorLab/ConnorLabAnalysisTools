@@ -95,9 +95,9 @@ class AnalysisModule(Generic[InputT, OutputT, ResultT]):
             prepared_data = self.input_handler.prepare(data)
 
             logger.info(f"Module {self.name}: Running computation...")
-            if not self.computation.requires(prepared_data):
-                raise ValueError(
-                    f"Module {self.name}: prepared_data does not meet requirements for {self.computation.__class__.__name__}")
+            # if not self.computation.requires(prepared_data):
+            #     raise ValueError(
+            #         f"Module {self.name}: prepared_data does not meet requirements for {self.computation.__class__.__name__}")
             computation_result = self.computation.compute(prepared_data)
             self._raw_output = computation_result
 
